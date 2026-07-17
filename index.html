@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#1d6ef2">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.png">
+<title>Site Log</title>
+<style>
+  :root {
+    --bg: #f4f5f7;
+    --card: #ffffff;
+    --text: #1a1d21;
+    --muted: #6b7280;
+    --accent: #1d6ef2;
+    --accent-text: #ffffff;
+    --border: #d8dce2;
+    --chip-bg: #e8ebf0;
+    --chip-on: #1d6ef2;
+    --danger: #d33c3c;
+    --ok: #1a8a4a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14161a;
+      --card: #1e2126;
+      --text: #eceff3;
+      --muted: #9aa3ad;
+      --accent: #4d8ef7;
+      --border: #33383f;
+      --chip-bg: #2a2f36;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg); color: var(--text);
+    padding-bottom: calc(70px + env(safe-area-inset-bottom));
+    font-size: 16px;
+  }
+  header {
+    padding: calc(14px + env(safe-area-inset-top)) 16px 10px;
+    font-size: 20px; font-weight: 700;
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  header small { font-size: 12px; color: var(--muted); font-weight: 400; }
+  main { padding: 0 12px; max-width: 640px; margin: 0 auto; }
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px; margin-bottom: 12px;
+  }
+  label.fieldlabel { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin: 12px 0 6px; text-transform: uppercase; letter-spacing: .03em; }
+  label.fieldlabel:first-child { margin-top: 0; }
+  select, input[type="text"], input[type="date"], input[type="number"], textarea {
+    width: 100%; padding: 12px; font-size: 16px;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--bg); color: var(--text); appearance: none;
+  }
+  textarea { min-height: 80px; resize: vertical; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    padding: 10px 14px; border-radius: 20px; font-size: 15px;
+    background: var(--chip-bg); color: var(--text);
+    border: 1px solid transparent; cursor: pointer; user-select: none;
+  }
+  .chip.on { background: var(--chip-on); color: var(--accent-text); }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .row > * { flex: 1; }
+  button.btn {
+    display: block; width: 100%; padding: 14px; font-size: 17px; font-weight: 600;
+    border: none; border-radius: 10px; cursor: pointer;
+    background: var(--accent); color: var(--accent-text); margin-top: 8px;
+  }
+  button.btn.secondary { background: var(--chip-bg); color: var(--text); }
+  button.btn.danger { background: var(--danger); color: #fff; }
+  button.small {
+    padding: 8px 12px; font-size: 14px; border: none; border-radius: 8px;
+    background: var(--chip-bg); color: var(--text); cursor: pointer;
+  }
+  button.small.danger { color: var(--danger); }
+  nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--card); border-top: 1px solid var(--border);
+    display: flex; padding-bottom: env(safe-area-inset-bottom);
+  }
+  nav button {
+    flex: 1; padding: 12px 0 10px; border: none; background: none;
+    font-size: 12px; color: var(--muted); cursor: pointer;
+  }
+  nav button .ico { display: block; font-size: 22px; margin-bottom: 2px; }
+  nav button.on { color: var(--accent); font-weight: 600; }
+  .tab { display: none; }
+  .tab.on { display: block; }
+  .entry-item { border-bottom: 1px solid var(--border); padding: 12px 0; cursor: pointer; }
+  .entry-item:last-child { border-bottom: none; }
+  .entry-head { display: flex; justify-content: space-between; font-weight: 600; }
+  .entry-sub { font-size: 14px; color: var(--muted); margin-top: 3px; }
+  .thumbs { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+  .thumbs img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; }
+  .thumbs .thumbwrap { position: relative; }
+  .thumbs .thumbwrap button {
+    position: absolute; top: -6px; right: -6px; width: 22px; height: 22px;
+    border-radius: 50%; border: none; background: var(--danger); color: #fff;
+    font-size: 13px; line-height: 1; cursor: pointer;
+  }
+  .lot-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+  .lot-item:last-child { border-bottom: none; }
+  .lot-item.archived { opacity: .5; }
+  .empty { text-align: center; color: var(--muted); padding: 30px 10px; font-size: 15px; }
+  .toast {
+    position: fixed; bottom: calc(80px + env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
+    background: var(--text); color: var(--bg); padding: 10px 18px; border-radius: 20px;
+    font-size: 15px; opacity: 0; transition: opacity .25s; pointer-events: none; z-index: 50; white-space: nowrap;
+  }
+  .toast.show { opacity: 1; }
+  .meter { height: 8px; border-radius: 4px; background: var(--chip-bg); overflow: hidden; margin-top: 6px; }
+  .meter > div { height: 100%; background: var(--ok); }
+  .meter.warn > div { background: var(--danger); }
+  .muted { color: var(--muted); font-size: 14px; }
+  pre.preview {
+    white-space: pre-wrap; font-size: 13px; background: var(--bg);
+    border: 1px solid var(--border); border-radius: 8px; padding: 10px;
+    max-height: 260px; overflow-y: auto; margin-top: 10px;
+  }
+  .photobtn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 14px; font-size: 16px;
+    border: 2px dashed var(--border); border-radius: 10px;
+    background: none; color: var(--muted); cursor: pointer;
+  }
+  #viewer {
+    position: fixed; inset: 0; background: rgba(0,0,0,.92); z-index: 100;
+    display: none; align-items: center; justify-content: center;
+  }
+  #viewer.on { display: flex; }
+  #viewer img { max-width: 96vw; max-height: 92vh; border-radius: 6px; }
+</style>
+</head>
+<body>
+
+<header><span id="headTitle">Site Log</span><small id="todayLabel"></small></header>
+<main>
+
+  <!-- ============ NEW ENTRY ============ -->
+  <section class="tab" id="tab-entry">
+    <div class="card">
+      <label class="fieldlabel">Lot</label>
+      <select id="entryLot"></select>
+      <div class="row" style="margin-top:12px">
+        <div>
+          <label class="fieldlabel">Date</label>
+          <input type="date" id="entryDate">
+        </div>
+        <div>
+          <label class="fieldlabel">Temp °F</label>
+          <input type="number" id="entryTemp" placeholder="—" inputmode="numeric">
+        </div>
+      </div>
+      <label class="fieldlabel">Weather</label>
+      <div class="chips" id="weatherChips"></div>
+      <label class="fieldlabel">Trades on-site</label>
+      <div class="chips" id="tradeChips"></div>
+      <div class="row" style="margin-top:8px">
+        <input type="text" id="tradeCustom" placeholder="Other trade…">
+        <button class="small" style="flex:0 0 auto" onclick="addCustomTrade()">Add</button>
+      </div>
+      <label class="fieldlabel">Photos</label>
+      <button class="photobtn" onclick="document.getElementById('photoInput').click()">📷 Add photo</button>
+      <input type="file" id="photoInput" accept="image/*" multiple style="display:none">
+      <div class="thumbs" id="entryThumbs"></div>
+      <label class="fieldlabel">Notes</label>
+      <textarea id="entryNotes" placeholder="What happened on site…"></textarea>
+      <button class="btn" id="saveBtn" onclick="saveEntry()">Save entry</button>
+      <button class="btn secondary" id="cancelEditBtn" style="display:none" onclick="cancelEdit()">Cancel edit</button>
+    </div>
+  </section>
+
+  <!-- ============ LOG ============ -->
+  <section class="tab" id="tab-log">
+    <div class="card">
+      <label class="fieldlabel">Filter by lot</label>
+      <select id="logFilter" onchange="renderLog()"></select>
+    </div>
+    <div class="card" id="logList"></div>
+  </section>
+
+  <!-- ============ LOTS ============ -->
+  <section class="tab" id="tab-lots">
+    <div class="card">
+      <label class="fieldlabel">Add lot / address</label>
+      <div class="row">
+        <input type="text" id="newLot" placeholder="e.g. Lot 14 — 512 Cedar Ct">
+        <button class="small" style="flex:0 0 auto" onclick="addLot()">Add</button>
+      </div>
+    </div>
+    <div class="card" id="lotList"></div>
+  </section>
+
+  <!-- ============ EXPORT ============ -->
+  <section class="tab" id="tab-export">
+    <div class="card">
+      <label class="fieldlabel">Summary — lot</label>
+      <select id="exportLot"></select>
+      <div class="row" style="margin-top:12px">
+        <div>
+          <label class="fieldlabel">From</label>
+          <input type="date" id="exportFrom">
+        </div>
+        <div>
+          <label class="fieldlabel">To</label>
+          <input type="date" id="exportTo">
+        </div>
+      </div>
+      <button class="btn" onclick="buildSummary()">Generate summary</button>
+      <pre class="preview" id="summaryOut" style="display:none"></pre>
+      <div class="row" id="summaryActions" style="display:none; margin-top:8px">
+        <button class="btn secondary" onclick="copySummary()">Copy</button>
+        <button class="btn secondary" onclick="shareSummary()">Share</button>
+      </div>
+    </div>
+    <div class="card">
+      <label class="fieldlabel">Backup &amp; restore</label>
+      <p class="muted">iPhone can clear browser storage without warning. Back up weekly — the file saves to Files and restores everything, photos included.</p>
+      <button class="btn" onclick="backupData()">⬇ Back up to file</button>
+      <button class="btn secondary" onclick="document.getElementById('restoreInput').click()">⬆ Restore from backup</button>
+      <input type="file" id="restoreInput" accept=".json,application/json" style="display:none">
+      <label class="fieldlabel" style="margin-top:16px">Storage used</label>
+      <div class="meter" id="storageMeter"><div style="width:0%"></div></div>
+      <p class="muted" id="storageLabel" style="margin-top:4px"></p>
+    </div>
+  </section>
+
+</main>
+
+<nav>
+  <button data-tab="entry" onclick="showTab('entry')"><span class="ico">✏️</span>New Entry</button>
+  <button data-tab="log" onclick="showTab('log')"><span class="ico">📋</span>Log</button>
+  <button data-tab="lots" onclick="showTab('lots')"><span class="ico">📍</span>Lots</button>
+  <button data-tab="export" onclick="showTab('export')"><span class="ico">📤</span>Export</button>
+</nav>
+
+<div class="toast" id="toast"></div>
+<div id="viewer" onclick="this.classList.remove('on')"><img id="viewerImg" alt=""></div>
+
+<script>
+'use strict';
+
+/* ---------- storage ---------- */
+const K_LOTS = 'sitelog.lots';
+const K_ENTRIES = 'sitelog.entries';
+const QUOTA_BYTES = 5 * 1024 * 1024; // typical Safari localStorage quota
+
+function load(key) {
+  try { return JSON.parse(localStorage.getItem(key)) || []; }
+  catch (e) { return []; }
+}
+function persist(key, val) {
+  localStorage.setItem(key, JSON.stringify(val)); // throws on quota — callers handle
+}
+
+let lots = load(K_LOTS);
+let entries = load(K_ENTRIES);
+let editingId = null;      // entry id when editing, else null
+let pendingPhotos = [];    // data-URLs staged on the New Entry form
+
+const WEATHER = ['☀️ Sunny', '⛅ Cloudy', '🌧 Rain', '❄️ Snow', '💨 Windy'];
+const TRADES = ['Framing', 'Electrical', 'Plumbing', 'HVAC', 'Drywall', 'Roofing',
+                'Concrete', 'Paint', 'Insulation', 'Siding', 'Landscaping', 'Inspector'];
+let customTrades = [];
+
+const $ = id => document.getElementById(id);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function toast(msg, ms) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._h);
+  t._h = setTimeout(() => t.classList.remove('show'), ms || 1800);
+}
+
+/* ---------- tabs ---------- */
+function showTab(name) {
+  document.querySelectorAll('.tab').forEach(el => el.classList.toggle('on', el.id === 'tab-' + name));
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
+  if (name === 'log') renderLog();
+  if (name === 'lots') renderLots();
+  if (name === 'export') { fillLotSelect($('exportLot'), true); updateStorageMeter(); }
+  if (name === 'entry') fillLotSelect($('entryLot'), false);
+}
+
+/* ---------- chips ---------- */
+function renderChipGroup(el, items, cls) {
+  el.innerHTML = '';
+  items.forEach(label => {
+    const c = document.createElement('div');
+    c.className = 'chip ' + cls;
+    c.textContent = label;
+    c.onclick = () => c.classList.toggle('on');
+    el.appendChild(c);
+  });
+}
+function selectedChips(el) {
+  return [...el.querySelectorAll('.chip.on')].map(c => c.textContent);
+}
+function addCustomTrade() {
+  const v = $('tradeCustom').value.trim();
+  if (!v) return;
+  if (!customTrades.includes(v) && !TRADES.includes(v)) customTrades.push(v);
+  $('tradeCustom').value = '';
+  rebuildTradeChips([...selectedChips($('tradeChips')), v]);
+}
+function rebuildTradeChips(selected) {
+  renderChipGroup($('tradeChips'), [...TRADES, ...customTrades], 'trade');
+  [...$('tradeChips').children].forEach(c => {
+    if (selected.includes(c.textContent)) c.classList.add('on');
+  });
+}
+
+/* ---------- lots ---------- */
+function fillLotSelect(sel, withAll) {
+  const active = lots.filter(l => !l.archived);
+  const prev = sel.value;
+  sel.innerHTML = '';
+  if (withAll) sel.add(new Option('All lots', ''));
+  active.forEach(l => sel.add(new Option(l.address, l.id)));
+  if (!withAll && !active.length) sel.add(new Option('— add a lot first —', ''));
+  if ([...sel.options].some(o => o.value === prev)) sel.value = prev;
+}
+function addLot() {
+  const v = $('newLot').value.trim();
+  if (!v) return;
+  lots.push({ id: uid(), address: v, archived: false, created: new Date().toISOString() });
+  try { persist(K_LOTS, lots); } catch (e) { lots.pop(); toast('⚠️ Storage full'); return; }
+  $('newLot').value = '';
+  renderLots();
+  toast('Lot added');
+}
+function toggleArchive(id) {
+  const l = lots.find(x => x.id === id);
+  if (!l) return;
+  l.archived = !l.archived;
+  persist(K_LOTS, lots);
+  renderLots();
+}
+function deleteLot(id) {
+  const n = entries.filter(e => e.lotId === id).length;
+  if (!confirm(n ? `Delete this lot AND its ${n} entries?` : 'Delete this lot?')) return;
+  lots = lots.filter(x => x.id !== id);
+  entries = entries.filter(e => e.lotId !== id);
+  persist(K_LOTS, lots);
+  persist(K_ENTRIES, entries);
+  renderLots();
+  toast('Lot deleted');
+}
+function renderLots() {
+  const el = $('lotList');
+  if (!lots.length) { el.innerHTML = '<div class="empty">No lots yet.<br>Add your active addresses above.</div>'; return; }
+  el.innerHTML = '';
+  lots.forEach(l => {
+    const n = entries.filter(e => e.lotId === l.id).length;
+    const div = document.createElement('div');
+    div.className = 'lot-item' + (l.archived ? ' archived' : '');
+    div.innerHTML = `<div><strong>${esc(l.address)}</strong><div class="muted">${n} entr${n === 1 ? 'y' : 'ies'}</div></div>`;
+    const btns = document.createElement('div');
+    btns.style.cssText = 'display:flex;gap:6px;flex:0 0 auto';
+    const a = document.createElement('button');
+    a.className = 'small';
+    a.textContent = l.archived ? 'Unarchive' : 'Archive';
+    a.onclick = () => toggleArchive(l.id);
+    const d = document.createElement('button');
+    d.className = 'small danger';
+    d.textContent = 'Delete';
+    d.onclick = () => deleteLot(l.id);
+    btns.append(a, d);
+    div.appendChild(btns);
+    el.appendChild(div);
+  });
+}
+
+/* ---------- photos ---------- */
+$('photoInput').addEventListener('change', async ev => {
+  for (const file of ev.target.files) {
+    try { pendingPhotos.push(await compressImage(file)); }
+    catch (e) { toast('⚠️ Could not read photo'); }
+  }
+  ev.target.value = '';
+  renderPendingThumbs();
+});
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const MAX = 1000;
+      let { width: w, height: h } = img;
+      if (w > MAX || h > MAX) {
+        const s = MAX / Math.max(w, h);
+        w = Math.round(w * s); h = Math.round(h * s);
+      }
+      const cv = document.createElement('canvas');
+      cv.width = w; cv.height = h;
+      cv.getContext('2d').drawImage(img, 0, 0, w, h);
+      resolve(cv.toDataURL('image/jpeg', 0.6));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('bad image')); };
+    img.src = url;
+  });
+}
+function renderPendingThumbs() {
+  const el = $('entryThumbs');
+  el.innerHTML = '';
+  pendingPhotos.forEach((src, i) => {
+    const w = document.createElement('div');
+    w.className = 'thumbwrap';
+    const img = document.createElement('img');
+    img.src = src;
+    img.onclick = () => viewPhoto(src);
+    const x = document.createElement('button');
+    x.textContent = '✕';
+    x.onclick = () => { pendingPhotos.splice(i, 1); renderPendingThumbs(); };
+    w.append(img, x);
+    el.appendChild(w);
+  });
+}
+function viewPhoto(src) {
+  $('viewerImg').src = src;
+  $('viewer').classList.add('on');
+}
+
+/* ---------- entries ---------- */
+function saveEntry() {
+  const lotId = $('entryLot').value;
+  if (!lotId) { toast('Add a lot first (Lots tab)'); return; }
+  const entry = {
+    id: editingId || uid(),
+    lotId,
+    date: $('entryDate').value || new Date().toISOString().slice(0, 10),
+    temp: $('entryTemp').value.trim(),
+    weather: selectedChips($('weatherChips')),
+    trades: selectedChips($('tradeChips')),
+    photos: pendingPhotos.slice(),
+    notes: $('entryNotes').value.trim(),
+    created: new Date().toISOString()
+  };
+  const prevEntries = entries.slice();
+  if (editingId) {
+    const i = entries.findIndex(e => e.id === editingId);
+    if (i >= 0) { entry.created = entries[i].created; entries[i] = entry; }
+  } else {
+    entries.push(entry);
+  }
+  try {
+    persist(K_ENTRIES, entries);
+  } catch (e) {
+    // quota hit — save the entry without photos rather than lose it
+    entry.photos = [];
+    try {
+      persist(K_ENTRIES, entries);
+      toast('⚠️ Storage full — entry saved WITHOUT photos', 3500);
+    } catch (e2) {
+      entries = prevEntries;
+      toast('⚠️ Storage full — entry NOT saved. Back up & delete old entries.', 4000);
+      return;
+    }
+    resetEntryForm();
+    return;
+  }
+  toast(editingId ? 'Entry updated' : 'Entry saved ✔');
+  resetEntryForm();
+}
+function resetEntryForm() {
+  editingId = null;
+  pendingPhotos = [];
+  $('entryTemp').value = '';
+  $('entryNotes').value = '';
+  $('entryDate').value = new Date().toISOString().slice(0, 10);
+  renderChipGroup($('weatherChips'), WEATHER, 'weather');
+  rebuildTradeChips([]);
+  renderPendingThumbs();
+  $('saveBtn').textContent = 'Save entry';
+  $('cancelEditBtn').style.display = 'none';
+  $('headTitle').textContent = 'Site Log';
+}
+function editEntry(id) {
+  const e = entries.find(x => x.id === id);
+  if (!e) return;
+  editingId = id;
+  showTab('entry');
+  fillLotSelect($('entryLot'), false);
+  $('entryLot').value = e.lotId;
+  $('entryDate').value = e.date;
+  $('entryTemp').value = e.temp || '';
+  $('entryNotes').value = e.notes || '';
+  renderChipGroup($('weatherChips'), WEATHER, 'weather');
+  [...$('weatherChips').children].forEach(c => { if (e.weather.includes(c.textContent)) c.classList.add('on'); });
+  e.trades.forEach(t => { if (!TRADES.includes(t) && !customTrades.includes(t)) customTrades.push(t); });
+  rebuildTradeChips(e.trades);
+  pendingPhotos = (e.photos || []).slice();
+  renderPendingThumbs();
+  $('saveBtn').textContent = 'Update entry';
+  $('cancelEditBtn').style.display = 'block';
+  $('headTitle').textContent = 'Edit Entry';
+  window.scrollTo(0, 0);
+}
+function cancelEdit() { resetEntryForm(); showTab('log'); }
+function deleteEntry(id) {
+  if (!confirm('Delete this entry?')) return;
+  entries = entries.filter(e => e.id !== id);
+  persist(K_ENTRIES, entries);
+  renderLog();
+  toast('Entry deleted');
+}
+function lotName(id) {
+  const l = lots.find(x => x.id === id);
+  return l ? l.address : '(deleted lot)';
+}
+function renderLog() {
+  fillLotSelect($('logFilter'), true);
+  const filter = $('logFilter').value;
+  const list = entries
+    .filter(e => !filter || e.lotId === filter)
+    .sort((a, b) => (b.date + b.created).localeCompare(a.date + a.created));
+  const el = $('logList');
+  if (!list.length) { el.innerHTML = '<div class="empty">No entries yet.</div>'; return; }
+  el.innerHTML = '';
+  list.forEach(e => {
+    const div = document.createElement('div');
+    div.className = 'entry-item';
+    const sub = [
+      e.weather.join(' '),
+      e.temp ? e.temp + '°' : '',
+      e.trades.length ? e.trades.join(', ') : ''
+    ].filter(Boolean).join(' · ');
+    div.innerHTML =
+      `<div class="entry-head"><span>${esc(lotName(e.lotId))}</span><span>${esc(fmtDate(e.date))}</span></div>` +
+      (sub ? `<div class="entry-sub">${esc(sub)}</div>` : '') +
+      (e.notes ? `<div class="entry-sub">${esc(e.notes)}</div>` : '');
+    if (e.photos && e.photos.length) {
+      const th = document.createElement('div');
+      th.className = 'thumbs';
+      e.photos.forEach(src => {
+        const img = document.createElement('img');
+        img.src = src;
+        img.onclick = ev => { ev.stopPropagation(); viewPhoto(src); };
+        th.appendChild(img);
+      });
+      div.appendChild(th);
+    }
+    const btns = document.createElement('div');
+    btns.style.cssText = 'display:flex;gap:6px;margin-top:8px';
+    const eb = document.createElement('button');
+    eb.className = 'small'; eb.textContent = 'Edit';
+    eb.onclick = ev => { ev.stopPropagation(); editEntry(e.id); };
+    const db = document.createElement('button');
+    db.className = 'small danger'; db.textContent = 'Delete';
+    db.onclick = ev => { ev.stopPropagation(); deleteEntry(e.id); };
+    btns.append(eb, db);
+    div.appendChild(btns);
+    el.appendChild(div);
+  });
+}
+function fmtDate(iso) {
+  const [y, m, d] = iso.split('-');
+  return `${m}/${d}/${y.slice(2)}`;
+}
+
+/* ---------- export summary ---------- */
+function buildSummary() {
+  const lotId = $('exportLot').value;
+  const from = $('exportFrom').value;
+  const to = $('exportTo').value;
+  const list = entries
+    .filter(e => (!lotId || e.lotId === lotId) && (!from || e.date >= from) && (!to || e.date <= to))
+    .sort((a, b) => a.date.localeCompare(b.date) || a.created.localeCompare(b.created));
+  let out = 'SITE LOG SUMMARY\n';
+  out += 'Lot: ' + (lotId ? lotName(lotId) : 'All lots') + '\n';
+  if (from || to) out += `Range: ${from || 'start'} to ${to || 'today'}\n`;
+  out += `Generated: ${new Date().toLocaleDateString()}\n`;
+  out += '========================\n';
+  if (!list.length) out += '\n(no entries in range)\n';
+  let lastDate = '';
+  list.forEach(e => {
+    if (e.date !== lastDate) { out += `\n--- ${fmtDate(e.date)} ---\n`; lastDate = e.date; }
+    if (!lotId) out += `Lot: ${lotName(e.lotId)}\n`;
+    const wx = [e.weather.join(' '), e.temp ? e.temp + '°F' : ''].filter(Boolean).join(', ');
+    if (wx) out += `Weather: ${wx}\n`;
+    if (e.trades.length) out += `Trades: ${e.trades.join(', ')}\n`;
+    if (e.notes) out += `Notes: ${e.notes}\n`;
+    if (e.photos && e.photos.length) out += `Photos: ${e.photos.length} on file\n`;
+    out += '\n';
+  });
+  $('summaryOut').textContent = out;
+  $('summaryOut').style.display = 'block';
+  $('summaryActions').style.display = 'flex';
+}
+function copySummary() {
+  const text = $('summaryOut').textContent;
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => toast('Copied'), () => fallbackCopy(text));
+  } else fallbackCopy(text);
+}
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  document.body.appendChild(ta);
+  ta.select();
+  try { document.execCommand('copy'); toast('Copied'); }
+  catch (e) { toast('Copy failed — select the text manually'); }
+  ta.remove();
+}
+function shareSummary() {
+  const text = $('summaryOut').textContent;
+  if (navigator.share) navigator.share({ title: 'Site Log Summary', text }).catch(() => {});
+  else { copySummary(); toast('Sharing unavailable — copied instead'); }
+}
+
+/* ---------- backup / restore ---------- */
+function backupData() {
+  const payload = {
+    app: 'sitelog', version: 1,
+    exportedAt: new Date().toISOString(),
+    lots, entries
+  };
+  const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'sitelog-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+  toast('Backup downloading — save it to Files');
+}
+$('restoreInput').addEventListener('change', ev => {
+  const file = ev.target.files[0];
+  ev.target.value = '';
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    let data;
+    try { data = JSON.parse(reader.result); } catch (e) { toast('⚠️ Not a valid backup file'); return; }
+    if (data.app !== 'sitelog' || !Array.isArray(data.lots) || !Array.isArray(data.entries)) {
+      toast('⚠️ Not a Site Log backup'); return;
+    }
+    const replace = confirm(
+      `Backup from ${(data.exportedAt || '').slice(0, 10)}: ${data.lots.length} lots, ${data.entries.length} entries.\n\n` +
+      'OK = REPLACE everything with the backup\nCancel = MERGE into current data'
+    );
+    const prevL = lots.slice(), prevE = entries.slice();
+    if (replace) {
+      lots = data.lots; entries = data.entries;
+    } else {
+      data.lots.forEach(l => { if (!lots.some(x => x.id === l.id)) lots.push(l); });
+      data.entries.forEach(e => { if (!entries.some(x => x.id === e.id)) entries.push(e); });
+    }
+    try {
+      persist(K_LOTS, lots); persist(K_ENTRIES, entries);
+    } catch (e) {
+      lots = prevL; entries = prevE;
+      toast('⚠️ Restore too large for storage', 3500);
+      return;
+    }
+    renderLots(); renderLog();
+    fillLotSelect($('entryLot'), false);
+    updateStorageMeter();
+    toast(replace ? 'Restored ✔' : 'Merged ✔');
+  };
+  reader.readAsText(file);
+});
+
+/* ---------- storage meter ---------- */
+function updateStorageMeter() {
+  let used = 0;
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      used += k.length + (localStorage.getItem(k) || '').length;
+    }
+    used *= 2; // UTF-16
+  } catch (e) { /* leave at 0 */ }
+  const pct = Math.min(100, Math.round(used / QUOTA_BYTES * 100));
+  const meter = $('storageMeter');
+  meter.classList.toggle('warn', pct >= 80);
+  meter.firstElementChild.style.width = pct + '%';
+  $('storageLabel').textContent =
+    (used / 1024 / 1024).toFixed(2) + ' MB of ~5 MB' +
+    (pct >= 80 ? ' — back up now, then delete old entries' : '');
+}
+
+/* ---------- offline (service worker — only when hosted, no-op on file://) ---------- */
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+/* ---------- init ---------- */
+(function init() {
+  $('todayLabel').textContent = new Date().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+  entries.forEach(e => (e.trades || []).forEach(t => {
+    if (!TRADES.includes(t) && !customTrades.includes(t)) customTrades.push(t);
+  }));
+  resetEntryForm();
+  fillLotSelect($('entryLot'), false);
+  showTab(lots.length ? 'entry' : 'lots');
+})();
+</script>
+</body>
+</html>
