@@ -88,9 +88,9 @@
   }
   nav button {
     flex: 1; padding: 12px 0 10px; border: none; background: none;
-    font-size: 12px; color: var(--muted); cursor: pointer;
+    font-size: 11px; color: var(--muted); cursor: pointer; white-space: nowrap;
   }
-  nav button .ico { display: block; font-size: 22px; margin-bottom: 2px; }
+  nav button .ico { display: block; font-size: 21px; margin-bottom: 2px; }
   nav button.on { color: var(--accent); font-weight: 600; }
   .tab { display: none; }
   .tab.on { display: block; }
@@ -125,6 +125,20 @@
     border: 1px solid var(--border); border-radius: 8px; padding: 10px;
     max-height: 260px; overflow-y: auto; margin-top: 10px;
   }
+  details.guide {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 0 14px; margin-bottom: 10px;
+  }
+  details.guide summary {
+    padding: 13px 0; font-weight: 600; font-size: 15px; cursor: pointer; list-style: none;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  details.guide summary::after { content: '▸'; color: var(--muted); transition: transform .15s; }
+  details.guide[open] summary::after { transform: rotate(90deg); }
+  details.guide .body { padding: 0 0 13px; font-size: 14px; line-height: 1.5; }
+  details.guide .body p { margin-bottom: 7px; }
+  details.guide .body .fail { color: var(--danger); }
+  details.guide .body .code { color: var(--muted); font-size: 13px; }
   .photobtn {
     display: flex; align-items: center; justify-content: center; gap: 8px;
     width: 100%; padding: 14px; font-size: 16px;
@@ -205,6 +219,104 @@
     <p class="muted" style="padding:0 6px 12px">Forecast is inferred from the trades and weather you've logged per lot, following the standard build sequence: concrete → framing → roof dry-in → rough-ins → insulation → drywall → paint → finish.</p>
   </section>
 
+  <!-- ============ GUIDE ============ -->
+  <section class="tab" id="tab-guide">
+    <p class="muted" style="padding:4px 6px 12px">Inspection order for a new house in WA (Issaquah). City inspections book through MyBuildingPermit — <strong>electrical is separate</strong>, permitted and inspected by WA Labor &amp; Industries. Work can't be covered up until its inspection passes.</p>
+
+    <details class="guide"><summary>1 · Erosion / TESC</summary><div class="body">
+      <p><strong>When:</strong> before any dirt moves, and re-checked all job long.</p>
+      <p><strong>Inspector checks:</strong> silt fence placement and condition, gravel construction entrance, protected storm drains, stabilized stockpiles, clearing limits flagged.</p>
+      <p class="fail">Common fails: silt fence down or full of sediment, mud tracked onto the street, work outside clearing limits — this site has creek/wetland buffers, so it gets watched hard.</p>
+    </div></details>
+
+    <details class="guide"><summary>2 · Footings &amp; setbacks</summary><div class="body">
+      <p><strong>When:</strong> forms and rebar in, before the pour.</p>
+      <p><strong>Inspector checks:</strong> footing width/depth on undisturbed soil, rebar size, laps and clearance (held off the dirt), forms match plans, building set back correctly from property lines.</p>
+      <p class="fail">Common fails: rebar sitting on soil (needs chairs), soft or disturbed bearing soil, footing not to frost depth.</p>
+      <p class="code">IRC R403</p>
+    </div></details>
+
+    <details class="guide"><summary>3 · Foundation walls</summary><div class="body">
+      <p><strong>When:</strong> walls formed with rebar, before pour; damp-proofing checked before backfill.</p>
+      <p><strong>Inspector checks:</strong> vertical/horizontal rebar spacing, anchor bolt size and spacing (max 6 ft, within 12" of plate ends), hold-downs where the plans call them out, damp-proofing below grade.</p>
+      <p class="fail">Common fails: missing anchor bolts at plate ends, hold-down hardware not matching the shear plan, backfilled before sign-off.</p>
+      <p class="code">IRC R404</p>
+    </div></details>
+
+    <details class="guide"><summary>4 · Groundwork plumbing / slab</summary><div class="body">
+      <p><strong>When:</strong> under-slab drains in, before concrete.</p>
+      <p><strong>Inspector checks:</strong> drain/waste lines under test (water head or air), correct slope (1/4" per ft typical), pipe bedding, vapor barrier and any under-slab insulation before pour.</p>
+      <p class="fail">Common fails: no test on the line when the inspector shows up, trap arms too long, missing cleanouts.</p>
+      <p class="code">UPC ch. 7</p>
+    </div></details>
+
+    <details class="guide"><summary>5 · Shear / sheathing nail</summary><div class="body">
+      <p><strong>When:</strong> exterior sheathing on, before house wrap covers it.</p>
+      <p><strong>Inspector checks:</strong> nail size and spacing on braced wall panels (edges vs field), nails not overdriven through the ply, hold-down straps tied in, roof sheathing nailing.</p>
+      <p class="fail">Common fails: overdriven gun nails, missed edge nailing, wrap on before inspection — they will make you pull it back.</p>
+      <p class="code">IRC R602.10</p>
+    </div></details>
+
+    <details class="guide"><summary>6 · Plumbing rough-in</summary><div class="body">
+      <p><strong>When:</strong> all supply and DWV piping in walls/floors, before insulation.</p>
+      <p><strong>Inspector checks:</strong> DWV under water or air test, supply lines under pressure test, venting sizes and routes, nail plates where pipe is within 1-1/4" of stud face, trap arm lengths, water heater seismic strapping rough.</p>
+      <p class="fail">Common fails: test not holding, missing nail plates, flat venting, unprotected penetrations of top plates.</p>
+      <p class="code">UPC / IRC ch. 25–33</p>
+    </div></details>
+
+    <details class="guide"><summary>7 · Mechanical (HVAC) rough-in</summary><div class="body">
+      <p><strong>When:</strong> ducts, flues, and gas piping in, before insulation.</p>
+      <p><strong>Inspector checks:</strong> duct sizing/support/sealing (mastic or UL-181 tape), gas line under pressure test with gauge, combustion air, exhaust fan ducts to outside (not the attic), dryer duct length.</p>
+      <p class="fail">Common fails: no gauge on the gas test, bath fan dumped into attic, crushed flex duct, missing duct support.</p>
+      <p class="code">IRC ch. 12–24</p>
+    </div></details>
+
+    <details class="guide"><summary>8 · Electrical rough-in (L&amp;I — separate)</summary><div class="body">
+      <p><strong>When:</strong> boxes and wire in, before insulation. <strong>State inspector (WA L&amp;I), not the city</strong> — separate permit, separate scheduling.</p>
+      <p><strong>Inspector checks:</strong> wire gauge vs breaker, box fill, staples within 8" of boxes then every 4-1/2 ft, nail plates, grounds pigtailed, can lights rated for insulation contact, AFCI/GFCI circuits planned right.</p>
+      <p class="fail">Common fails: missing nail plates, overfilled boxes, unsupported cable runs, panel workspace blocked.</p>
+      <p class="code">NEC / WAC 296-46B</p>
+    </div></details>
+
+    <details class="guide"><summary>9 · Fire sprinkler rough (13D)</summary><div class="body">
+      <p><strong>When:</strong> sprinkler piping in, before cover. These homes have NFPA 13D systems — fire gets its own permit and inspector.</p>
+      <p><strong>Inspector checks:</strong> pipe routing per approved plan, hydrostatic test holding, head locations/spacing, no head blocked by framing.</p>
+      <p class="fail">Common fails: test not set up, heads too close to obstructions, unlisted pipe support.</p>
+      <p class="code">NFPA 13D</p>
+    </div></details>
+
+    <details class="guide"><summary>10 · Framing — the big one</summary><div class="body">
+      <p><strong>When:</strong> after ALL rough-ins pass and windows are in, before insulation. Nothing gets covered until this passes.</p>
+      <p><strong>Inspector checks:</strong> headers and point loads carried down to foundation, joists/rafters not over-cut or over-notched, fire blocking (top of walls, soffits, stair stringers, every 10 ft in concealed spaces), draft stops, positive connections (hangers fully nailed), truss bracing per truss sheets, egress window sizes, stair rise/run.</p>
+      <p class="fail">Common fails: missing fire blocking (the #1 write-up), hangers with half the nails, plumber/HVAC over-cut a joist or top plate and nobody fixed it, missing blocking under point loads.</p>
+      <p class="code">IRC R502–R802</p>
+    </div></details>
+
+    <details class="guide"><summary>11 · Insulation / energy (WSEC)</summary><div class="body">
+      <p><strong>When:</strong> insulation in, before drywall.</p>
+      <p><strong>Inspector checks:</strong> R-values per the WA energy code (typ. R-21 walls, R-49+ attic, R-30 floors), batts cut around wiring/boxes not stuffed, baffles at eave vents, air sealing at penetrations, rim joists insulated.</p>
+      <p class="fail">Common fails: compressed or gapped batts, missing baffles, unsealed top-plate penetrations.</p>
+      <p class="code">WSEC-R</p>
+    </div></details>
+
+    <details class="guide"><summary>12 · Drywall / shear nail</summary><div class="body">
+      <p><strong>When:</strong> board hung, before tape — only where drywall is part of a braced/shear wall or a fire assembly (garage common wall).</p>
+      <p><strong>Inspector checks:</strong> screw/nail pattern on designated walls, Type X board at the garage ceiling/wall, penetrations sealed in fire assemblies.</p>
+      <p class="fail">Common fails: taping crews start before sign-off, wrong board type at the garage.</p>
+    </div></details>
+
+    <details class="guide"><summary>13 · Finals — plumbing, mech, electrical, fire, building</summary><div class="body">
+      <p><strong>When:</strong> house complete. Each trade gets a final, building final is last.</p>
+      <p><strong>Inspector checks:</strong> fixtures set and working, water heater strapped + T&amp;P drain, furnace/fan flows, smoke + CO detectors in every bedroom/hall/floor, GFCI/AFCI test, handrails and guards (34–38" rail, guards at 30"+ drops), egress, house numbers visible, final grade sloping away, erosion control removed/stabilized.</p>
+      <p class="fail">Common fails: missing CO detectors, handrail returns, T&amp;P discharge, site not stabilized.</p>
+    </div></details>
+
+    <details class="guide"><summary>14 · CO &amp; closing</summary><div class="body">
+      <p><strong>When:</strong> every final passed, permit conditions cleared, fees paid → city issues the <strong>Certificate of Occupancy</strong>. No CO, no closing.</p>
+      <p><strong>What to watch here:</strong> open permits or a failed correction item on ANY trade blocks the CO. On this site also: buffer restoration must be accepted before the 16th home's occupancy, and SR-900 frontage work before the 10th. When closings stack up, these are the things that suddenly become everyone's emergency — check the permit link on the Ahead tab and you'll see it coming.</p>
+    </div></details>
+  </section>
+
   <!-- ============ EXPORT ============ -->
   <section class="tab" id="tab-export">
     <div class="card">
@@ -246,6 +358,7 @@
   <button data-tab="log" onclick="showTab('log')"><span class="ico">📋</span>Log</button>
   <button data-tab="ahead" onclick="showTab('ahead')"><span class="ico">🔮</span>Ahead</button>
   <button data-tab="lots" onclick="showTab('lots')"><span class="ico">📍</span>Lots</button>
+  <button data-tab="guide" onclick="showTab('guide')"><span class="ico">📖</span>Guide</button>
   <button data-tab="export" onclick="showTab('export')"><span class="ico">📤</span>Export</button>
 </nav>
 
@@ -365,6 +478,18 @@ function deleteLot(id) {
   renderLots();
   toast('Lot deleted');
 }
+const PERMIT_PORTAL = 'https://permitsearch.mybuildingpermit.com';
+const PERMIT_JURISDICTION = 'Issaquah';
+function permitUrl(permit) {
+  return `${PERMIT_PORTAL}/PermitDetails/${encodeURIComponent(permit.trim().toUpperCase())}/${PERMIT_JURISDICTION}`;
+}
+function setLotPermit(id, value) {
+  const l = lots.find(x => x.id === id);
+  if (!l) return;
+  l.permit = value.trim();
+  persist(K_LOTS, lots);
+  renderLots();
+}
 function renderLots() {
   const el = $('lotList');
   if (!lots.length) { el.innerHTML = '<div class="empty">No lots yet.<br>Add your active addresses above.</div>'; return; }
@@ -373,6 +498,7 @@ function renderLots() {
     const n = entries.filter(e => e.lotId === l.id).length;
     const div = document.createElement('div');
     div.className = 'lot-item' + (l.archived ? ' archived' : '');
+    div.style.flexWrap = 'wrap';
     div.innerHTML = `<div><strong>${esc(l.address)}</strong><div class="muted">${n} entr${n === 1 ? 'y' : 'ies'}</div></div>`;
     const btns = document.createElement('div');
     btns.style.cssText = 'display:flex;gap:6px;flex:0 0 auto';
@@ -386,6 +512,25 @@ function renderLots() {
     d.onclick = () => deleteLot(l.id);
     btns.append(a, d);
     div.appendChild(btns);
+    // permit row: number + link to the city inspection record (needs signal)
+    const prow = document.createElement('div');
+    prow.style.cssText = 'flex-basis:100%;display:flex;gap:8px;align-items:center;margin-top:8px';
+    const pin = document.createElement('input');
+    pin.type = 'text';
+    pin.placeholder = 'Permit # (e.g. BLD24-00155)';
+    pin.value = l.permit || '';
+    pin.style.cssText = 'flex:1;padding:8px;font-size:14px';
+    pin.onchange = () => setLotPermit(l.id, pin.value);
+    prow.appendChild(pin);
+    if (l.permit) {
+      const link = document.createElement('a');
+      link.href = permitUrl(l.permit);
+      link.target = '_blank';
+      link.textContent = '🔎 Inspections';
+      link.style.cssText = 'flex:0 0 auto;color:var(--accent);font-size:14px;text-decoration:none;font-weight:600';
+      prow.appendChild(link);
+    }
+    div.appendChild(prow);
     el.appendChild(div);
   });
 }
@@ -606,7 +751,11 @@ function renderAhead() {
     card.className = 'card';
     let html = `<strong>${esc(l.address)}</strong>`;
     if (!es.length) {
-      card.innerHTML = html + '<p class="muted" style="margin-top:6px">No entries yet — log a visit and the forecast starts here.</p>';
+      html += '<p class="muted" style="margin-top:6px">No entries yet — log a visit and the forecast starts here.</p>';
+      if (l.permit) {
+        html += `<div style="margin-top:8px"><a href="${permitUrl(l.permit)}" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:600">🔎 City inspection record — ${esc(l.permit.toUpperCase())}</a> <span class="muted">(needs signal)</span></div>`;
+      }
+      card.innerHTML = html;
       el.appendChild(card);
       return;
     }
@@ -656,6 +805,9 @@ function renderAhead() {
 
     if (flags.length) {
       html += '<div style="margin-top:8px">' + flags.map(f => `<div class="entry-sub" style="margin-top:4px">${f}</div>`).join('') + '</div>';
+    }
+    if (l.permit) {
+      html += `<div style="margin-top:8px"><a href="${permitUrl(l.permit)}" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:600">🔎 City inspection record — ${esc(l.permit.toUpperCase())}</a> <span class="muted">(needs signal)</span></div>`;
     }
     card.innerHTML = html;
     el.appendChild(card);
