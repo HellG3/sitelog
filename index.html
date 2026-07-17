@@ -490,6 +490,18 @@ function setLotPermit(id, value) {
   persist(K_LOTS, lots);
   renderLots();
 }
+function editLotAddress(id) {
+  const l = lots.find(x => x.id === id);
+  if (!l) return;
+  const v = prompt('Edit lot name / address:', l.address);
+  if (v === null) return;
+  const t = v.trim();
+  if (!t) return;
+  l.address = t;
+  persist(K_LOTS, lots);
+  renderLots();
+  fillLotSelect($('entryLot'), false);
+}
 function renderLots() {
   const el = $('lotList');
   if (!lots.length) { el.innerHTML = '<div class="empty">No lots yet.<br>Add your active addresses above.</div>'; return; }
@@ -499,7 +511,11 @@ function renderLots() {
     const div = document.createElement('div');
     div.className = 'lot-item' + (l.archived ? ' archived' : '');
     div.style.flexWrap = 'wrap';
-    div.innerHTML = `<div><strong>${esc(l.address)}</strong><div class="muted">${n} entr${n === 1 ? 'y' : 'ies'}</div></div>`;
+    const info = document.createElement('div');
+    info.innerHTML = `<strong>${esc(l.address)}</strong><div class="muted">${n} entr${n === 1 ? 'y' : 'ies'} · tap name to edit</div>`;
+    info.style.cursor = 'pointer';
+    info.onclick = () => editLotAddress(l.id);
+    div.appendChild(info);
     const btns = document.createElement('div');
     btns.style.cssText = 'display:flex;gap:6px;flex:0 0 auto';
     const a = document.createElement('button');
