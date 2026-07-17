@@ -199,6 +199,12 @@
     <div class="card" id="lotList"></div>
   </section>
 
+  <!-- ============ AHEAD ============ -->
+  <section class="tab" id="tab-ahead">
+    <div id="aheadList"></div>
+    <p class="muted" style="padding:0 6px 12px">Forecast is inferred from the trades and weather you've logged per lot, following the standard build sequence: concrete → framing → roof dry-in → rough-ins → insulation → drywall → paint → finish.</p>
+  </section>
+
   <!-- ============ EXPORT ============ -->
   <section class="tab" id="tab-export">
     <div class="card">
@@ -238,6 +244,7 @@
 <nav>
   <button data-tab="entry" onclick="showTab('entry')"><span class="ico">✏️</span>New Entry</button>
   <button data-tab="log" onclick="showTab('log')"><span class="ico">📋</span>Log</button>
+  <button data-tab="ahead" onclick="showTab('ahead')"><span class="ico">🔮</span>Ahead</button>
   <button data-tab="lots" onclick="showTab('lots')"><span class="ico">📍</span>Lots</button>
   <button data-tab="export" onclick="showTab('export')"><span class="ico">📤</span>Export</button>
 </nav>
@@ -288,6 +295,7 @@ function showTab(name) {
   document.querySelectorAll('.tab').forEach(el => el.classList.toggle('on', el.id === 'tab-' + name));
   document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
   if (name === 'log') renderLog();
+  if (name === 'ahead') renderAhead();
   if (name === 'lots') renderLots();
   if (name === 'export') { fillLotSelect($('exportLot'), true); updateStorageMeter(); }
   if (name === 'entry') fillLotSelect($('entryLot'), false);
@@ -568,6 +576,90 @@ function renderLog() {
 function fmtDate(iso) {
   const [y, m, d] = iso.split('-');
   return `${m}/${d}/${y.slice(2)}`;
+}
+
+/* ---------- ahead (forecast) ---------- */
+const STAGES = [
+  { name: 'Concrete / foundation', trades: ['Concrete'], exposed: true },
+  { name: 'Framing', trades: ['Framing'], exposed: true },
+  { name: 'Roofing / dry-in', trades: ['Roofing'], exposed: true },
+  { name: 'Rough-ins', trades: ['Electrical', 'Plumbing', 'HVAC'], exposed: false },
+  { name: 'Insulation', trades: ['Insulation'], exposed: false },
+  { name: 'Drywall', trades: ['Drywall'], exposed: false },
+  { name: 'Paint', trades: ['Paint'], exposed: false },
+  { name: 'Finish / exterior', trades: ['Siding', 'Landscaping'], exposed: true }
+];
+function daysAgo(isoDate) {
+  return Math.round((Date.now() - new Date(isoDate + 'T12:00').getTime()) / 86400000);
+}
+function renderAhead() {
+  const el = $('aheadList');
+  const active = lots.filter(l => !l.archived);
+  if (!active.length) {
+    el.innerHTML = '<div class="card"><div class="empty">No active lots.</div></div>';
+    return;
+  }
+  el.innerHTML = '';
+  active.forEach(l => {
+    const es = entries.filter(e => e.lotId === l.id).sort((a, b) => a.date.localeCompare(b.date));
+    const card = document.createElement('div');
+    card.className = 'card';
+    let html = `<strong>${esc(l.address)}</strong>`;
+    if (!es.length) {
+      card.innerHTML = html + '<p class="muted" style="margin-top:6px">No entries yet — log a visit and the forecast starts here.</p>';
+      el.appendChild(card);
+      return;
+    }
+    // last date each trade was logged
+    const tradeDates = {};
+    es.forEach(e => (e.trades || []).forEach(t => {
+      if (!tradeDates[t] || e.date > tradeDates[t]) tradeDates[t] = e.date;
+    }));
+    let stageIdx = -1;
+    STAGES.forEach((s, i) => { if (s.trades.some(t => tradeDates[t])) stageIdx = i; });
+    const last = es[es.length - 1];
+    const idle = daysAgo(last.date);
+    html += `<div class="muted" style="margin:4px 0 8px">Last entry ${fmtDate(last.date)}${idle > 0 ? ` (${idle}d ago)` : ' (today)'}</div>`;
+
+    if (stageIdx >= 0) {
+      const stage = STAGES[stageIdx];
+      const stageDate = stage.trades.map(t => tradeDates[t]).filter(Boolean).sort().pop();
+      html += `<div>📍 Stage ${stageIdx + 1} of ${STAGES.length}: <strong>${stage.name}</strong> <span class="muted">(last seen ${fmtDate(stageDate)})</span></div>`;
+      const next = STAGES[stageIdx + 1];
+      if (next) {
+        html += `<div style="margin-top:6px">➡️ Next up: <strong>${next.name}</strong> — expect the super to ask about ${next.trades.join(' / ')} scheduling.</div>`;
+      } else {
+        html += `<div style="margin-top:6px">➡️ Final stretch — expect punch-list and closeout questions.</div>`;
+      }
+    } else {
+      html += '<div>📍 No sequence trades logged yet — only notes/weather so far.</div>';
+    }
+
+    const flags = [];
+    // rough-in inspection: rough-ins seen, moving toward insulation, no inspector logged since rough-in started
+    if (stageIdx === 3) {
+      const roughDate = STAGES[3].trades.map(t => tradeDates[t]).filter(Boolean).sort().pop();
+      if (!tradeDates['Inspector'] || tradeDates['Inspector'] < roughDate) {
+        flags.push('🔎 No inspection logged since rough-ins started — super will want the rough-in inspection scheduled before insulation.');
+      }
+    }
+    // weather exposure: rain/snow in the last 7 days while in an exposed stage
+    if (stageIdx >= 0 && STAGES[stageIdx].exposed) {
+      const wet = es.filter(e =>
+        daysAgo(e.date) <= 7 &&
+        (e.weather || []).some(w => w.includes('Rain') || w.includes('Snow'))
+      ).length;
+      if (wet) flags.push(`🌧 Weather hit ${wet} day${wet > 1 ? 's' : ''} this week during exposed work — have the slip explanation ready.`);
+    }
+    // stale lot
+    if (idle >= 5) flags.push(`⏰ No entry in ${idle} days — super may ask for a status update on this lot.`);
+
+    if (flags.length) {
+      html += '<div style="margin-top:8px">' + flags.map(f => `<div class="entry-sub" style="margin-top:4px">${f}</div>`).join('') + '</div>';
+    }
+    card.innerHTML = html;
+    el.appendChild(card);
+  });
 }
 
 /* ---------- export summary ---------- */

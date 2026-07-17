@@ -1,4 +1,4 @@
-const CACHE = 'sitelog-v1';
+const CACHE = 'sitelog-v2';
 const ASSETS = ['./', 'index.html', 'manifest.json', 'icon.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {
